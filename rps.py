@@ -6,11 +6,6 @@ import time
 import numpy as np
 import streamlit as st
 import requests
-url = 'https://raw.githubusercontent.com/bmox/rock_paper_scissor_streamlit/main/dataset.csv'
-res = requests.get(url, allow_redirects=True)
-with open('sales_team.csv','wb') as file:
-    file.write(res.content)
-
 
 class handDetector:
     def __init__(
@@ -212,5 +207,4 @@ st.title("Rock Paper scissor")
 detectionConfidence = st.slider("Hand Detection Confidence")
 trackConfidence = st.slider("Hand Tracking Confidence")
 flip_the_video = st.selectbox("Horizontally flip video ",("Yes","No")) 
-csv_path="dataset.csv"
 webrtc_streamer(key="example", video_transformer_factory=VideoTransformer)
