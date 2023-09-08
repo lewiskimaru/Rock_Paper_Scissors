@@ -91,7 +91,6 @@ with col1:
         media_stream_constraints={"video": True, "audio": False},
         video_processor_factory=VideoProcessor,
         async_processing=True,
-        container: Optional[DeltaGenerator]=container
     )
 
 # Add content to the left column (app description)
