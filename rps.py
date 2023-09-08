@@ -6,6 +6,13 @@ import av
 import mediapipe as mp
 import base64
 
+
+###################################### Helper functions ##############################
+# Read the image file and encode it as base64
+
+with open('/mount/src/rock_paper_scissors/Resources/ai_face.jpg', 'rb') as aiface:
+    image_data = base64.b64encode(aiface.read()).decode('utf-8') 
+
 # Set up MediaPipe Hands
 mp_drawing = mp.solutions.drawing_utils
 mp_drawing_styles = mp.solutions.drawing_styles
@@ -45,10 +52,6 @@ RTC_CONFIGURATION = RTCConfiguration(
 
 # Create Streamlit web app
 scores = [0, 0] # [AI, Player]
-
-# Read the image file and encode it as base64
-with open('/mount/src/rock_paper_scissors/Resources/ai_face.jpg', 'rb') as aiface:
-    image_data = base64.b64encode(aiface.read()).decode('utf-8') 
     
 st.set_page_config(page_title="RPS", page_icon="🤖", layout="wide",)
 
@@ -77,20 +80,6 @@ with col1:
 # Add content to the left column (app description)
 with col2:
     st.info(f"AI {scores[0]}")
-    ai_face = "/mount/src/rock_paper_scissors/Resources/ai_face.jpg"
-    #st.image(ai_face, caption=None, use_column_width=False)
-    # Create the HTML code with rounded edges, green border, and an image
-    markdown_code = f"""
-    <div style="border: 2px solid green; background-color: transparent; padding: 10px; margin: 10px; border-radius: 15px;">
-    <img src="{ai_face}" alt="Image" style="max-width:100%;">
-    </div>
-    """
-
-    # Display the HTML code with st.markdown
-    st.markdown(markdown_code, unsafe_allow_html=True)
-
     img_tag = f'<img src="data:image/png;base64,{image_data}" style="border: 2px solid green; border-radius: 15px;">'
-
-
     # Create a Streamlit component to render the HTML
     st.components.v1.html(img_tag, height=400)
