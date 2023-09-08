@@ -59,7 +59,7 @@ col1, col2 = st.columns(2)
 
 # Add content to the right column (video stream)
 with col1:
-    st.info(f"<p style='font-size: 24px;'>Player {scores[1]}</p>", unsafe_allow_html=True)
+    st.info(f"Player **{scores[1]}**")
     # Define a video processor class
     class VideoProcessor:
         def recv(self, frame):
@@ -79,7 +79,7 @@ with col1:
 
 # Add content to the left column (app description)
 with col2:
-    st.info(f"AI {scores[0]}")
+    st.info(f"Player **{scores[0]}**")
     img_tag = f'<img src="data:image/png;base64,{image_data}" style="border: 2px solid green; border-radius: 15px;">'
     # Create a Streamlit component to render the HTML
     st.components.v1.html(img_tag, height=400)
