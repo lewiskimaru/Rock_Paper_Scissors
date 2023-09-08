@@ -57,19 +57,19 @@ st.set_page_config(page_title="RPS", page_icon="🤖", layout="wide",)
 
 col1, col2 = st.columns(2)
 
-# Create a container for the video element
-container = st.container()
-
-# Set the style of the container to have a curved border
-container.markdown("""
+# Define a custom CSS style to create the curved border
+custom_css = """
 <style>
-div[role="figure"] {
-    border: 5px solid black;
-    border-radius: 25px;
-}
+    .curved-border {
+        border: 2px solid green;
+        border-radius: 15px;
+        padding: 10px;
+    }
 </style>
-""", unsafe_allow_html=True)
+"""
 
+# Display the custom CSS style
+st.markdown(custom_css, unsafe_allow_html=True)
 
 # Add content to the right column (video stream)
 with col1:
@@ -82,7 +82,9 @@ with col1:
             return av.VideoFrame.from_ndarray(img, format="bgr24")
     
     # Create the WebRTC streamer
-    webrtc_ctx = webrtc_streamer(
+    # Display the WebRTC component within a curved-border <div>
+    with st.markdown('<div class="curved-border">', unsafe_allow_html=True):
+     webrtc_ctx = webrtc_streamer(
         key="hand-tracking",
         mode=WebRtcMode.SENDRECV,
         rtc_configuration=RTC_CONFIGURATION,
