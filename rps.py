@@ -40,9 +40,11 @@ def process(image):
 RTC_CONFIGURATION = RTCConfiguration(
     {"iceServers": [{"urls": ["stun:stun.l.google.com:19302"]}]}
 )
-scores = [0, 0] # [AI, Player]
+
 
 # Create Streamlit web app
+scores = [0, 0] # [AI, Player]
+
 st.set_page_config(page_title="RPS", page_icon="🤖", layout="wide",)
 
 col1, col2 = st.columns(2)
@@ -71,4 +73,13 @@ with col1:
 with col2:
     st.info(f"AI {scores[0]}")
     ai_face = "/mount/src/rock_paper_scissors/Resources/ai_face.jpg"
-    st.image(ai_face, caption=None, use_column_width=False)
+    #st.image(ai_face, caption=None, use_column_width=False)
+    # Create the HTML code with rounded edges, green border, and an image
+    markdown_code = f"""
+    <div style="border: 2px solid green; background-color: transparent; padding: 10px; margin: 10px; border-radius: 15px;">
+    <img src="{ai_face}" alt="Image" style="max-width:100%;">
+    </div>
+    """
+
+    # Display the HTML code with st.markdown
+    st.markdown(markdown_code, unsafe_allow_html=True)
