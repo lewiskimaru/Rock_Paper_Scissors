@@ -89,7 +89,8 @@ with col2:
     # Display the HTML code with st.markdown
     st.markdown(markdown_code, unsafe_allow_html=True)
 
-    img_tag = f'<img src="data:image/png;base64,{image_data}">'
+    img_tag = f'<img src="data:image/png;base64,{image_data}" style="border: 2px solid green; border-radius: 15px;">'
+
 
     # Create a Streamlit component to render the HTML
     st.components.v1.html(img_tag, height=400)
