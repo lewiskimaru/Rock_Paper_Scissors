@@ -70,5 +70,5 @@ with col1:
 # Add content to the left column (app description)
 with col2:
     st.info(f"AI {scores[0]}")
-    ai_face = "/mount/src/rock_paper_scissors/Resources/4.png"
+    ai_face = "/mount/src/rock_paper_scissors/Resources/ai_face.jpg"
     st.image(ai_face, caption="AI player", use_column_width=True)
