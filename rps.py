@@ -5,6 +5,7 @@ import time
 import numpy as np
 import streamlit as st
 import requests
+print("importing cv2")
 import cv2
 
 class handDetector:
