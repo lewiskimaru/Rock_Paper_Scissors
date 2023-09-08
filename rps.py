@@ -40,6 +40,7 @@ def process(image):
 RTC_CONFIGURATION = RTCConfiguration(
     {"iceServers": [{"urls": ["stun:stun.l.google.com:19302"]}]}
 )
+scores = [0, 0] # [AI, Player]
 
 # Create Streamlit web app
 st.set_page_config(page_title="RPS", page_icon="🤖", layout="wide",)
@@ -48,7 +49,7 @@ col1, col2 = st.columns(2)
 
 # Add content to the right column (video stream)
 with col1:
-    st.info(f"Player{ai}")
+    st.info(f"Player{scores[1]}")
     # Define a video processor class
     class VideoProcessor:
         def recv(self, frame):
@@ -68,6 +69,6 @@ with col1:
 
 # Add content to the left column (app description)
 with col2:
-    st.info(f"AI {ai}")
+    st.info(f"AI {scores[0]}")
     ai_face = "/mount/src/rock_paper_scissors/Resources/4.png"
     st.image(prediction_image, caption="Prediction Image", use_column_width=True)
