@@ -79,7 +79,7 @@ with col1:
 
 # Add content to the left column (app description)
 with col2:
-    st.info(f"Player **{scores[0]}**")
+    st.info(f"AI **{scores[0]}**")
     img_tag = f'<img src="data:image/png;base64,{image_data}" style="border: 2px solid green; border-radius: 15px;">'
     # Create a Streamlit component to render the HTML
     st.components.v1.html(img_tag, height=400)
