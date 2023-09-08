@@ -48,8 +48,7 @@ col1, col2 = st.columns(2)
 
 # Add content to the right column (video stream)
 with col1:
-    st.header('Video Stream')
-    
+    st.info(f"Player{ai}")
     # Define a video processor class
     class VideoProcessor:
         def recv(self, frame):
@@ -69,6 +68,6 @@ with col1:
 
 # Add content to the left column (app description)
 with col2:
-    st.header('App Description')
-    st.write('This app uses MediaPipe to perform hand tracking and landmark detection in real-time.')
-    st.write('Raise your hand in front of the camera to see hand landmarks on the right.')
+    st.info(f"AI {ai}")
+    ai_face = "/mount/src/rock_paper_scissors/Resources/4.png"
+    st.image(prediction_image, caption="Prediction Image", use_column_width=True)
