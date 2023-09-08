@@ -4,6 +4,7 @@ import cv2
 import numpy as np
 import av
 import mediapipe as mp
+import base64
 
 # Set up MediaPipe Hands
 mp_drawing = mp.solutions.drawing_utils
@@ -45,6 +46,10 @@ RTC_CONFIGURATION = RTCConfiguration(
 # Create Streamlit web app
 scores = [0, 0] # [AI, Player]
 
+# Read the image file and encode it as base64
+with open('/mount/src/rock_paper_scissors/Resources/ai_face.jpg', 'rb') as aiface:
+    image_data = base64.b64encode(aiface.read()).decode('utf-8') 
+    
 st.set_page_config(page_title="RPS", page_icon="🤖", layout="wide",)
 
 col1, col2 = st.columns(2)
@@ -83,3 +88,8 @@ with col2:
 
     # Display the HTML code with st.markdown
     st.markdown(markdown_code, unsafe_allow_html=True)
+
+    img_tag = f'<img src="data:image/png;base64,{image_data}">'
+
+    # Create a Streamlit component to render the HTML
+    st.components.v1.html(img_tag, height=400)
