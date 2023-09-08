@@ -15,4 +15,4 @@ div[role="figure"] {
 """, unsafe_allow_html=True)
 
 # Start the video streamer inside the container
-webrtc_streamer(key="example", video_processor_factory=None, object_detection=True, container=container)
+webrtc_streamer(key="example", video_processor_factory=None, container=container)
