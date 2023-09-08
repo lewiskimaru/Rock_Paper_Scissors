@@ -1,213 +1,192 @@
 from streamlit_webrtc import VideoTransformerBase, webrtc_streamer
+from PIL import Image
 import streamlit as st
 import cv2
 import mediapipe as mp
 import time
 import numpy as np
 import requests
+import cvzone
+import random
 
 # Rock paper scissors configuration
 st.set_page_config(page_title="RPS", page_icon="🤖")
-
-class handDetector:
-    def __init__(
-        self,
-        mode=
-        False,
-        maxHands=2,
-        detectionCon=0.5,
-        trackCon=0.5,
-        csv_path="dataset.csv",
-    ):
-        self.static_image_mode = mode
-        self.maxHands = maxHands
-        self.detectionCon = detectionCon
-        self.trackCon = trackCon
-
-        self.mpHands = mp.solutions.hands
-        self.hands = self.mpHands.Hands(
-            self.static_image_mode, self.maxHands, self.detectionCon, self.trackCon
-        )
-        self.mpDraw = mp.solutions.drawing_utils
-        # Gesture recognition model
-        self.csv_path = csv_path
-        self.file = np.genfromtxt(self.csv_path, delimiter=",")
-        self.angle = self.file[:, :-1].astype(np.float32)
-        self.label = self.file[:, -1].astype(np.float32)
-        self.knn = cv2.ml.KNearest_create()
-        self.knn.train(self.angle, cv2.ml.ROW_SAMPLE, self.label)
-
-    def findHands(self, img, draw=True):
-        rps_gesture = {0: "rock", 5: "paper", 9: "scissors"}
-        imgRGB = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
-        self.results = self.hands.process(imgRGB)
-        # print(results.multi_hand_landmarks)
-
-        if self.results.multi_hand_landmarks is not None:
-            rps_result = []
-            for res in self.results.multi_hand_landmarks:
-                if draw:
-                    cv2.rectangle(img, (0, 0), (640, 80), (0, 255, 0), cv2.FILLED)
-                    self.mpDraw.draw_landmarks(img, res, self.mpHands.HAND_CONNECTIONS)
-                    # self.mpDraw.draw_landmarks(img, res,
-                    #                             self.mpHands.HAND_CONNECTIONS,self.mpDraw.DrawingSpec(color=(16,218,232), thickness=2, circle_radius=4),
-                    #                     self.mpDraw.DrawingSpec(color=(255,255,255), thickness=2, circle_radius=2))
-                joint = np.zeros((21, 3))
-                for j, lm in enumerate(res.landmark):
-                    joint[j] = [lm.x, lm.y, lm.z]
-                # Compute angles between joints
-                v1 = joint[[0,1,2,3,0,5,6,7,0,9,10,11,0,13,14,15,0,17,18,19],:] # Parent joint
-                v2 = joint[[1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20],:] # Child joint
-                v = v2 - v1 
-                # Normalize v
-                v = v / np.linalg.norm(v, axis=1)[:, np.newaxis]
-                # Get angle using arcos of dot product
-                angle = np.arccos(
-                    np.einsum(
-                        "nt,nt->n",
-                        v[[0, 1, 2, 4, 5, 6, 8, 9, 10, 12, 13, 14, 16, 17, 18], :],
-                        v[[1, 2, 3, 5, 6, 7, 9, 10, 11, 13, 14, 15, 17, 18, 19], :],
-                    )
-                )  # [15,]
-                angle = np.degrees(angle)  # Convert radian to degree
-                # Inference gesture
-                data = np.array([angle], dtype=np.float32)
-                # print(data)
-                ret, results, neighbours, dist = self.knn.findNearest(data, 5)
-                idx = int(results[0][0])
-                if idx in rps_gesture.keys():
-                    org = (
-                        int(res.landmark[0].x * img.shape[1]),
-                        int(res.landmark[0].y * img.shape[0]),
-                    )
-                    cv2.putText(
-                        img,
-                        text=rps_gesture[idx].upper(),
-                        org=(org[0], org[1] + 20),
-                        fontFace=cv2.FONT_HERSHEY_SIMPLEX,
-                        fontScale=1,
-                        color=(255, 255, 255),
-                        thickness=2,
-                    )
-
-                    rps_result.append({"rps": rps_gesture[idx], "org": org})
-                if len(rps_result) >= 2:
-                    winner = None
-                    text = ""
-
-                    if rps_result[0]["rps"] == "rock":
-                        if rps_result[1]["rps"] == "rock":
-                            text = "Tie"
-                        elif rps_result[1]["rps"] == "paper":
-                            text = "Paper wins"
-                            winner = 1
-                        elif rps_result[1]["rps"] == "scissors":
-                            text = "Rock wins"
-                            winner = 0
-                    elif rps_result[0]["rps"] == "paper":
-                        if rps_result[1]["rps"] == "rock":
-                            text = "Paper wins"
-                            winner = 0
-                        elif rps_result[1]["rps"] == "paper":
-                            text = "Tie"
-                        elif rps_result[1]["rps"] == "scissors":
-                            text = "Scissors wins"
-                            winner = 1
-                    elif rps_result[0]["rps"] == "scissors":
-                        if rps_result[1]["rps"] == "rock":
-                            text = "Rock wins"
-                            winner = 1
-                        elif rps_result[1]["rps"] == "paper":
-                            text = "Scissors wins"
-                            winner = 0
-                        elif rps_result[1]["rps"] == "scissors":
-                            text = "Tie"
-
-                    if winner is not None:
-                        cv2.putText(
-                            img,
-                            text="Winner",
-                            org=(
-                                rps_result[winner]["org"][0],
-                                rps_result[winner]["org"][1] + 70,
-                            ),
-                            fontFace=cv2.FONT_HERSHEY_SIMPLEX,
-                            fontScale=2,
-                            color=(0, 255, 0),
-                            thickness=3,
-                        )
-
-                    cv2.putText(
-                        img,
-                        text=text,
-                        org=(150, 60),
-                        fontFace=cv2.FONT_HERSHEY_SIMPLEX,
-                        fontScale=2,
-                        color=(0, 0, 255),
-                        thickness=3,
-                    )
-
-        try:
-            print(data)
-        except:
-            data = None
-
-        return img, data
+st.title("Rock Paper Scissors Game")
+col1, col2 = st.columns(2)
+######################################Helper functions ######################################################
+timer = 0
+stateResult = False
+startGame = False
+scores = [0, 0]  # [AI, Player]
+font = 1
 
 
-def main(img,detectionConfidence,trackConfidence,flip_the_video,csv_path="dataset.csv"):
-    pTime = 0
-    cTime = 0
-    wCam, hCam = 640, 480
-    # streamlit start
-      
-    # streamlit end
+def fingerStats(hand_landmarks, finger_name):
+    finger_map = {'INDEX': 6, 'MIDDLE': 10, 'RING': 14, 'PINKY': 18}
 
-    detector = handDetector(
-        detectionCon=detectionConfidence / 100,
-        trackCon=trackConfidence / 100,
-        csv_path=csv_path,
-    )
+    fingerPip = hand_landmarks.landmark[finger_map[finger_name]].y
+    fingerTip = hand_landmarks.landmark[finger_map[finger_name] + 2].y
 
-    if flip_the_video =="Yes":
-        img = cv2.flip(img, 1)
-    elif flip_the_video == "No":
-        pass
-    
-    img, data = detector.findHands(img, draw=True)
-    cTime = time.time()
-    fps = 1 / (cTime - pTime)
-    pTime = cTime
-    cv2.putText(
-        img,
-        str(int(fps)),
-        (10, 70),
-        cv2.FONT_HERSHEY_PLAIN,
-        3,
-        (255, 0, 255),
-        3,
-    )
-    # frame = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
-    return img
+    return fingerPip > fingerTip
 
 
+def userMove(curr_state):
+    if curr_state == "0000":
+        user_move = 1
+    elif curr_state == "1111":
+        user_move = 2
+    elif curr_state == "1100":
+        user_move = 3
+    else:
+        user_move = 0
+    return user_move
 
-# streamlit run app.py
+
+def compMove():
+    options = [1, 2, 3]
+    computer_move = random.choice(options)
+    return computer_move
 
 
+def getWinner(user, comp):
+    if user != 0:
+        # Determine the winner
+        champ = (user - comp) % 3
+        # print(winner)
+        if champ == 1:
+            scores[1] += 1
+            result = "You win"
+        elif champ == 2:
+            scores[0] += 1
+            result = "AI wins"
+        else:
+            result = "Draw"
+    else:
+        result = "User move Unknown"
+    return result
 
 
-class VideoTransformer(VideoTransformerBase):
-    def transform(self, frame):
-        global detectionConfidence
-        global trackConfidence
-        global flip_the_video
-        global csv_path
+mpHands = mp.solutions.hands
+hands = mpHands.Hands()
+mpDraw = mp.solutions.drawing_utils
+
+trig = 0
+
+######################################Play the game ######################################################
+def main(image):
+    img = image
+
+    imgScaled = cv2.resize(img, (0, 0), None, 0.875, 0.875)
+    imgScaled = imgScaled[:, 80:480]
+
+    results = hands.process(imgScaled)
+    # print(results.multi_hand_landmarks)
+
+    if startGame:
+        if stateResult is False:
+            timer = time.time() - initialTime
+            cv2.putText(imgBG, str(int(timer)), (605, 435), font, 6, (34, 139, 34), 4)
+
+            if timer > 3:
+                stateResult = True
+                timer = 1
+
+                if results.multi_hand_landmarks:
+                    current_state = ""
+                    for handLms in results.multi_hand_landmarks:
+                        # mpDraw.draw_landmarks(imgScaled, handLms, mpHands.HAND_CONNECTIONS)
+
+                        index_status = fingerStats(handLms, 'INDEX')
+                        current_state += "1" if index_status else "0"
+
+                        middle_status = fingerStats(handLms, 'MIDDLE')
+                        current_state += "1" if middle_status else "0"
+
+                        ring_status = fingerStats(handLms, 'RING')
+                        current_state += "1" if ring_status else "0"
+
+                        pinky_status = fingerStats(handLms, 'PINKY')
+                        current_state += "1" if pinky_status else "0"
+
+                    # Get user choice
+                    user_choice = userMove(current_state)
+                    if user_choice == 0:
+                        x = 542
+                    else:
+                        x = 600
+
+                    # computer choice
+                    computer_choice = compMove()
+
+                    # Get the winner
+                    winner = getWinner(user_choice, computer_choice)
+
+                    # Print choices
+                    choices = ["Unknown", "Rock", "Paper", "Scissors"]
+                    print(f'\nYou choose {choices[user_choice]}')
+                    print(f'Computer choose {choices[computer_choice]}')
+                    # print(current_state)
+                    print(winner)
+
+                    # Get Computer choice images
+                    imgAI = cv2.imread(f'Resources/{computer_choice}.png', cv2.IMREAD_UNCHANGED)
+
+                else:
+                    imgAI = cv2.imread(f'Resources/4.png', cv2.IMREAD_UNCHANGED)
+                    winner = "No Hand Detected, Try Again"
+                    x = 525
+                    startGame = False
+                    initialTime = time.time()
+                    stateResult = True
+
+    if stateResult:
+        with col2:
+            st.info(str(winner))
+            st.image(imgAI, caption="Comp choice", use_column_width=True)
+
+    else:
+        if trig == 0:
+            st.info("Ready to play?")
+
+    st.info(str(scores[0]))
+    st.info(str(scores[1]))
+
+    key = cv2.waitKey(1)
+    # Start Game
+    if key == 32:
+        startGame = True
+        initialTime = time.time()
+        stateResult = False
+        trig += 1
+    # Refresh Game
+    if key == 8:
+        startGame = False
+        initialTime = time.time()
+        stateResult = False
+        scores = [0, 0]
+        trig = 0
+    # End game
+    if key == 27:
+        trig = 0
+        break
+
+######################################Get video feed######################################################
+
+class VideoProcessor:
+    def recv(self, frame):
         img = frame.to_ndarray(format="bgr24")
-        img=main(img,detectionConfidence,trackConfidence,flip_the_video)
-        return img
-st.title("Rock Paper scissor")
-detectionConfidence = st.slider("Hand Detection Confidence")
-trackConfidence = st.slider("Hand Tracking Confidence")
-flip_the_video = st.selectbox("Horizontally flip video ",("Yes","No")) 
-webrtc_streamer(key="example", video_transformer_factory=VideoTransformer)
+
+        img = process(img)
+
+        return av.VideoFrame.from_ndarray(img, format="bgr24")
+
+with col1:
+    st.header('Column 1')
+    webrtc_ctx = webrtc_streamer(
+    key="WYH",
+    mode=WebRtcMode.SENDRECV,
+    rtc_configuration=RTC_CONFIGURATION,
+    media_stream_constraints={"video": True, "audio": False},
+    video_processor_factory=VideoProcessor,
+    async_processing=True,
+)
