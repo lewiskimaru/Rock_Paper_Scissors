@@ -1,4 +1,3 @@
-import cv2
 from streamlit_webrtc import VideoTransformerBase, webrtc_streamer
 import cv2
 import mediapipe as mp
@@ -6,6 +5,7 @@ import time
 import numpy as np
 import streamlit as st
 import requests
+import cv2
 
 class handDetector:
     def __init__(
