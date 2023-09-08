@@ -1,9 +1,9 @@
+from streamlit_webrtc import webrtc_streamer, WebRtcMode, RTCConfiguration
 import streamlit as st
 import cv2
 import numpy as np
 import av
 import mediapipe as mp
-from streamlit_webrtc import webrtc_streamer, WebRtcMode, RTCConfiguration
 
 # Set up MediaPipe Hands
 mp_drawing = mp.solutions.drawing_utils
@@ -42,19 +42,10 @@ RTC_CONFIGURATION = RTCConfiguration(
 )
 
 # Create Streamlit web app
-st.title('Hand Tracking App')
-
-# Create two columns
 col1, col2 = st.columns(2)
 
-# Add content to the left column (app description)
-with col1:
-    st.header('App Description')
-    st.write('This app uses MediaPipe to perform hand tracking and landmark detection in real-time.')
-    st.write('Raise your hand in front of the camera to see hand landmarks on the right.')
-
 # Add content to the right column (video stream)
-with col2:
+with col1:
     st.header('Video Stream')
     
     # Define a video processor class
@@ -73,3 +64,9 @@ with col2:
         video_processor_factory=VideoProcessor,
         async_processing=True,
     )
+
+# Add content to the left column (app description)
+with col2:
+    st.header('App Description')
+    st.write('This app uses MediaPipe to perform hand tracking and landmark detection in real-time.')
+    st.write('Raise your hand in front of the camera to see hand landmarks on the right.')
