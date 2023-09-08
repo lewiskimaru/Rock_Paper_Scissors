@@ -42,6 +42,8 @@ RTC_CONFIGURATION = RTCConfiguration(
 )
 
 # Create Streamlit web app
+st.set_page_config(page_title="RPS", page_icon="🤖", layout="wide",)
+
 col1, col2 = st.columns(2)
 
 # Add content to the right column (video stream)
