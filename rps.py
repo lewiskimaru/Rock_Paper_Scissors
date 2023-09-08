@@ -6,20 +6,14 @@ import time
 import numpy as np
 import requests
 
-#st.write(st.__version__)
-#st.write(cv2.__version__)
-#st.write(mp.__version__)
-
-url = 'https://raw.githubusercontent.com/bmox/rock_paper_scissor_streamlit/main/dataset.csv'
-res = requests.get(url, allow_redirects=True)
-with open('sales_team.csv','wb') as file:
-    file.write(res.content)
-
+# Rock paper scissors configuration
+st.set_page_config(page_title="RPS", page_icon="🤖")
 
 class handDetector:
     def __init__(
         self,
-        mode=False,
+        mode=
+        False,
         maxHands=2,
         detectionCon=0.5,
         trackCon=0.5,
@@ -216,5 +210,4 @@ st.title("Rock Paper scissor")
 detectionConfidence = st.slider("Hand Detection Confidence")
 trackConfidence = st.slider("Hand Tracking Confidence")
 flip_the_video = st.selectbox("Horizontally flip video ",("Yes","No")) 
-csv_path="dataset.csv"
 webrtc_streamer(key="example", video_transformer_factory=VideoTransformer)
