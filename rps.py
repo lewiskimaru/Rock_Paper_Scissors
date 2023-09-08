@@ -59,7 +59,7 @@ col1, col2 = st.columns(2)
 
 # Add content to the right column (video stream)
 with col1:
-    st.info(f"Player **{scores[1]}**")
+    st.info(f"<p style='font-size: 24px;'>Player {scores[1]}</p>", unsafe_allow_html=True)
     # Define a video processor class
     class VideoProcessor:
         def recv(self, frame):
