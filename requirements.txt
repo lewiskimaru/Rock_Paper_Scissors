@@ -2,3 +2,4 @@ mediapipe
 opencv-python
 streamlit
 streamlit-webrtc
+cv2
